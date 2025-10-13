@@ -1,5 +1,8 @@
 import os
 import sys
+
+from torch.sparse import softmax
+
 current_dir = os.path.dirname(os.path.abspath("__file__"))
 project_dir = os.path.dirname(current_dir)
 sys.path.append(project_dir)
@@ -51,6 +54,19 @@ class Utility(torch.nn.Module):
         loss = Neg_Sharpe(portflio)
         return loss
 
+class h2():
+    def __init__(self):
+        super().__init__()
+
+    def contrain_0(self,x):
+        return torch.sign(x)*softmax(x, dim=1)      #|wt|=1
+
+
+    def constrain_1(self,x):
+        return torch.softmax(x, dim=1)             #long only+|wt|=1
+
+    def constrain_2(self,x):
+        return torch.sign(x)*torch.softmax(torch.sigmoid(x), dim=1)        #maximum+|wt|=1
 
 class MLP(nn.Module):
     def __init__(self, seq_length, n_features, y_dim):
