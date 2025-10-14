@@ -59,14 +59,14 @@ class h2():
         super().__init__()
 
     def contrain_0(self,x):
-        return torch.sign(x)*softmax(x, dim=1)      #|wt|=1
+        return torch.sign(x)*torch.softmax(x,dim=1)      #|wt|=1
 
 
     def constrain_1(self,x):
         return torch.softmax(x, dim=1)             #long only+|wt|=1
 
     def constrain_2(self,x):
-        return torch.sign(x)*torch.softmax(torch.sigmoid(x), dim=1)        #maximum+|wt|=1
+        return torch.sign(x)*torch.softmax(torch.sigmoid(torch.abs(x)), dim=1)        #maximum+|wt|=1
 
 class MLP(nn.Module):
     def __init__(self, seq_length, n_features, y_dim):
