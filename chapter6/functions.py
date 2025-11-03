@@ -67,15 +67,35 @@ class MLP(nn.Module):
         y = torch.softmax(x, dim=1) #long only+|wt|=1
         return y
 
+class LSTM(nn.Module):
+    def __init__(self, seq_length, n_features, y_dim):
+        super().__init__()
+        self.lstm = nn.LSTM(
+            input_size=20,  # 输入特征数，与卷积层输出通道数一致
+            hidden_size=64,  # LSTM单元数量
+            batch_first=True,  # 批处理优先
+            bidirectional=False  # 单向LSTM，如需双向可设为True
+        )
+        self.fc = nn.Linear(64, y_dim)
+
+    def forward(self, x):
+            #  x:(512, 10, 20)
+            lstm_out, _=self.lstm(x)
+            x = lstm_out[:, -1, :]#  x:(512, 10, 64)，choose the last time
+            x = self.fc(x)
+            y = torch.softmax(x, dim=1)  # long only+|wt|=1
+            return y
+
+
 class CNN(torch.nn.Module):
     def __init__(self, seq_length, n_features, y_dim):
         super().__init__()
-        self.cnn_3 = torch.nn.Sequential(#[512,200]
-            nn.Conv1d(n_features,32, kernel_size=3,padding=1),
+        self.cnn_3 = torch.nn.Sequential(#[512,20，10]
+            nn.Conv1d(n_features,32, kernel_size=3,padding=1),#[512,32，10]
             nn.ReLU(),
-            nn.Conv1d(32, 64, kernel_size=3, padding=1),
+            nn.Conv1d(32, 64, kernel_size=3, padding=1),#[512,64，10]
             nn.ReLU(),
-            nn.Conv1d(64, 128, kernel_size=3, padding=1),
+            nn.Conv1d(64, 128, kernel_size=3, padding=1),#[512,128，10]
             nn.ReLU(),
         )
         self.lstm = nn.LSTM(
@@ -88,9 +108,9 @@ class CNN(torch.nn.Module):
 
     def forward(self, x):
         x = x.permute(0,2,1)
-        x = self.cnn_3(x)
-        x = x.permute(0, 2, 1)
-        lstm_out, _ = self.lstm(x)  # 形状: (512, 10, 64)
+        x = self.cnn_3(x)       # (512, 128, 10)
+        x = x.permute(0, 2, 1)  # (512, 10, 128)
+        lstm_out, _ = self.lstm(x)  # (512, 10, 64)
         x = lstm_out[:, -1, :]
         x = self.fc(x)
         y = torch.softmax(x, dim=1)  # long only+|wt|=1
