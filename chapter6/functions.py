@@ -52,14 +52,28 @@ class Utility(torch.nn.Module):
         return loss
 
 
+class LM(torch.nn.Module):
+    def __init__(self, seq_length, n_features, y_dim):
+        super().__init__()
+        self.lm = nn.Sequential(
+            nn.Flatten(),   # [512,200]
+            nn.Linear(seq_length*n_features,y_dim),# [512,20]
+        )
+
+    def forward(self, x):
+        x = self.lm(x)
+        y = torch.softmax(x, dim=1)
+        return y
+
+
 class MLP(nn.Module):
     def __init__(self, seq_length, n_features, y_dim):
         super().__init__()#10,20,20
         self.fc = nn.Sequential(
             nn.Flatten(),#[512,200]
-            nn.Linear(seq_length*n_features, 4),#[512,4]
+            nn.Linear(seq_length*n_features, 64),#[512,4]
             nn.Tanh(),#[512,20]
-            nn.Linear(4, y_dim))#[512,20]
+            nn.Linear(64, y_dim))#[512,20]
 
     def forward(self, x):
         x = torch.flatten(x, start_dim=1)
