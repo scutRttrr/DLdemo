@@ -1,7 +1,8 @@
-import torch
 
-from chapter6.functions import *
 
+from chapter6.general_functions import *
+from chapter6.h1_functions import  *
+from chapter6.h2_functions import *
 
 def main():
     data_path = '../Data/portfolio_data.csv'
