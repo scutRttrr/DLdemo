@@ -54,18 +54,46 @@ class Utility(torch.nn.Module):
 
 class MLP(nn.Module):
     def __init__(self, seq_length, n_features, y_dim):
-        super().__init__()
-
+        super().__init__()#10,20,20
         self.fc = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(seq_length*n_features, 4),
-            nn.Tanh(),
-            nn.Linear(4, y_dim))
+            nn.Flatten(),#[512,200]
+            nn.Linear(seq_length*n_features, 4),#[512,4]
+            nn.Tanh(),#[512,20]
+            nn.Linear(4, y_dim))#[512,20]
 
     def forward(self, x):
         x = torch.flatten(x, start_dim=1)
-        x = self.fc(x)
+        x = self.fc(x)#[512,20]
         y = torch.softmax(x, dim=1) #long only+|wt|=1
+        return y
+
+class CNN(torch.nn.Module):
+    def __init__(self, seq_length, n_features, y_dim):
+        super().__init__()
+        self.cnn_3 = torch.nn.Sequential(#[512,200]
+            nn.Conv1d(n_features,32, kernel_size=3,padding=1),
+            nn.ReLU(),
+            nn.Conv1d(32, 64, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.Conv1d(64, 128, kernel_size=3, padding=1),
+            nn.ReLU(),
+        )
+        self.lstm = nn.LSTM(
+            input_size=128,  # 输入特征数，与卷积层输出通道数一致
+            hidden_size=64,  # LSTM单元数量
+            batch_first=True,  # 批处理优先
+            bidirectional=False  # 单向LSTM，如需双向可设为True
+        )
+        self.fc = nn.Linear(64, y_dim)
+
+    def forward(self, x):
+        x = x.permute(0,2,1)
+        x = self.cnn_3(x)
+        x = x.permute(0, 2, 1)
+        lstm_out, _ = self.lstm(x)  # 形状: (512, 10, 64)
+        x = lstm_out[:, -1, :]
+        x = self.fc(x)
+        y = torch.softmax(x, dim=1)  # long only+|wt|=1
         return y
 
 

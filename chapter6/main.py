@@ -1,3 +1,5 @@
+import torch
+
 from chapter6.functions import *
 
 
@@ -33,7 +35,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    model = MLP(T, len(ticker_list), y_dim=len(ticker_list))
+    model = CNN(T, len(ticker_list), y_dim=len(ticker_list))
     model.to(device)
     model, y_pred = train_model(model, train_loader, val_loader, test_x, savepath='./model/best_mlp', epochs=1000,
                                 lr=0.001, patience=50)
