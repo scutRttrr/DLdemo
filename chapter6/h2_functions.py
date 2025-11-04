@@ -7,7 +7,7 @@ class h2():
     def __init__(self):
         super().__init__()
 
-    def contrain_0(self,x):
+    def constrain_0(self,x):
         return torch.sign(x)*torch.softmax(x,dim=1)                                      #both long short and |wt|=1
 
 

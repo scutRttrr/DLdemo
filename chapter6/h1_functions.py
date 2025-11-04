@@ -18,9 +18,8 @@ class LM(torch.nn.Module):
         )
 
     def forward(self, x):
-        x = self.lm(x)
-        y = torch.softmax(x, dim=1)
-        return y
+        s = self.lm(x)
+        return s
 
 
 class MLP(nn.Module):
@@ -35,16 +34,14 @@ class MLP(nn.Module):
 
     def forward(self, x):
         x = torch.flatten(x, start_dim=1)
-        x = self.fc(x)#[512,20]
-        h2_m = h2()
-        y= h2_m.constrain_3(x,20,2)
-        return y
+        s = self.fc(x)#[512,20]
+        return s
 
 class LSTM(nn.Module):
     def __init__(self, seq_length, n_features, y_dim):
         super().__init__()
         self.lstm = nn.LSTM(
-            input_size=20,  # 输入特征数，与卷积层输出通道数一致
+            input_size=y_dim,  # 输入特征数，与卷积层输出通道数一致
             hidden_size=64,  # LSTM单元数量
             batch_first=True,  # 批处理优先
             bidirectional=False  # 单向LSTM，如需双向可设为True
@@ -55,9 +52,8 @@ class LSTM(nn.Module):
             #  x:(512, 10, 20)
             lstm_out, _=self.lstm(x)
             x = lstm_out[:, -1, :]#  x:(512, 10, 64)，choose the last time
-            x = self.fc(x)
-            y = torch.softmax(x, dim=1)  # long only+|wt|=1
-            return y
+            s = self.fc(x)
+            return s
 
 
 class CNN(torch.nn.Module):
@@ -85,6 +81,5 @@ class CNN(torch.nn.Module):
         x = x.permute(0, 2, 1)  # (512, 10, 128)
         lstm_out, _ = self.lstm(x)  # (512, 10, 64)
         x = lstm_out[:, -1, :]
-        x = self.fc(x)
-        y = torch.softmax(x, dim=1)  # long only+|wt|=1
-        return y
+        s = self.fc(x)
+        return s

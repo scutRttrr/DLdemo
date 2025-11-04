@@ -1,5 +1,6 @@
+import torch
 
-
+from chapter6.E2E import E2ENet
 from chapter6.general_functions import *
 from chapter6.h1_functions import  *
 from chapter6.h2_functions import *
@@ -13,8 +14,9 @@ def main():
                    'MO', 'MRK', 'PFE', 'PG', 'SO',
                    'NEM', 'NSC', 'GE', 'AEP', 'AAPL',
                    'ABT', 'SNA', 'PTC', 'BAC', 'NKE']
+    #ticker_list = ['VOT','GLD']
 
-    train_data, val_data, test_data = read_data('../Data/portfolio_data.csv')
+    train_data, val_data, test_data = read_data('../Data/VOT_GLD.csv')
     # %%
     train_x = data_classification(train_data[[tic + '_Return' for tic in ticker_list]], k, T)
     train_y = prepare_y(train_data[[tic + '_Return' for tic in ticker_list]], k, T)
@@ -36,20 +38,30 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    model = MLP(T, len(ticker_list), y_dim=len(ticker_list))
+
+    model = E2ENet(T, len(ticker_list), y_dim=len(ticker_list))
+    torch.save(model.state_dict(), './model/best_model')
     model.to(device)
-    model, y_pred = train_model(model, train_loader, val_loader, test_x, savepath='./model/best_mlp', epochs=1000,
+    model, y_pred = train_model(model, train_loader, val_loader, test_x, savepath='./model/best_model', epochs=1000,
                                 lr=0.001, patience=50)
+
+
 
     port_ret = np.array(test_y) * np.array(y_pred)
     port_ret = np.sum(port_ret, axis=1)
-    port_cumret = np.cumsum(port_ret)
-    # %%
-    print(report_metrics(port_ret))
+
+
+    port_factors = 1 + port_ret
+
+    compounded_cumret = port_factors.cumprod()      #复利累乘
+    port_cumret = np.cumsum(port_ret)               #收益相加
+
+
+
 
     # %%
     plt.figure(figsize=(10, 6))
-    plt.plot(port_cumret, label="MLP")
+    plt.plot(compounded_cumret, label='Portfolio return')
     plt.xlabel("Date")
     plt.ylabel("Cumulative Return")
     plt.legend()
