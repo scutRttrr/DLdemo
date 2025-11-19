@@ -3,10 +3,11 @@ from h1_functions import *
 from h2_functions import *
 
 class E2ENet(nn.Module):
-    def __init__(self, seq_length, n_features, y_dim,h1_mode=2,h2_constrain=1, L=1,K=0):
+    def __init__(self, seq_length, n_features, y_dim,h1_mode=2,h2_constrain=1, L=1,K=0,u=0.1):
         super(E2ENet, self).__init__()
         self.L = L
         self.K = K
+        self.u = u
         self.y_dim = y_dim
         self.n_features = n_features
         self.h1_mode = h1_mode
@@ -26,9 +27,9 @@ class E2ENet(nn.Module):
         s=self.model_h1(x);
 
         if self.h2_constrain == 0: w=self.model_h2.constrain_0(s)
-        if self.h2_constrain == 2: w = self.model_h2.constrain_2(s)
-        if self.h2_constrain == 3: w = self.model_h2.constrain_3(s)
-        if self.h2_constrain == 4: w = self.model_h2.constrain_4(s)
+        if self.h2_constrain == 2: w = self.model_h2.constrain_2(s,y_dim=self.y_dim,u=self.u)
+        if self.h2_constrain == 3: w = self.model_h2.constrain_3(s,y_dim=self.y_dim,K=self.K)
+        if self.h2_constrain == 4: w = self.model_h2.constrain_4(s,L=self.L)
         else: w = self.model_h2.constrain_1(s)
 
 

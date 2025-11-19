@@ -44,7 +44,7 @@ class LSTM(nn.Module):
             input_size=y_dim,  # 输入特征数，与卷积层输出通道数一致
             hidden_size=64,  # LSTM单元数量
             batch_first=True,  # 批处理优先
-            bidirectional=False  # 单向LSTM，如需双向可设为True
+            num_layers=1
         )
         self.fc = nn.Linear(64, y_dim)
 
